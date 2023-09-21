@@ -13,7 +13,7 @@ static ssize_t store_value(struct class *class,
 volatile int value_display;
 
 static struct of_device_id driver_ids[] = {
-	{.compatible = "emc-logic,7segment"},
+	{.compatible = "ggs-prd,7segment"},
 	{}
 };
 

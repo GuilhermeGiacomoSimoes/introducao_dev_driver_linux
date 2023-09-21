@@ -6,7 +6,7 @@
     target-path = "/";         
     __overlay__{             
       my_device{             
-        compatible = "emc-logic,7segment";
+        compatible = "ggs-prd,7segment";
         status = "okay";                 
         a-gpio = <&gpio 2 0>;      
         b-gpio = <&gpio 3 0>;
