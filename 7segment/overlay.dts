@@ -15,7 +15,6 @@
         e-gpio = <&gpio 6 0>;
         f-gpio = <&gpio 7 0>;
         g-gpio = <&gpio 9 0>;
-        dp-gpio = <&gpio 10 0>;
    	};         
     };      
   }; 
