@@ -1,3 +1,5 @@
+obj-m += hello_world.o
+
 all: run
 
 run:
