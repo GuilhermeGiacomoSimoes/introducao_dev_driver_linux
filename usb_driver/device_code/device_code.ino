@@ -1,4 +1,4 @@
-#include "conf_usb.h"
+#include "usbconfig.h"
 #include <VUSB.h>
 
 const int negative = 7;
