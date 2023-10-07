@@ -1,6 +1,9 @@
 #include "usbconfig.h"
 #include <VUSB.h>
 
+const int VENDOR_RQ_READ_BUFFER = 0;
+const int VENDOR_RQ_WRITE_BUFFER = 1;
+
 const int negative = 7;
 const int positive = 6;
 unsigned int stateSended = 0; 
@@ -14,13 +17,13 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
 		case VENDOR_RQ_READ_BUFFER:
 			usbMsgLen_t len = 64;
 
-			if(len > eq->wLength.word) 
+			if(len > rq->wLength.word) 
 				len = rq->wLength.word;
 
 			usbMsgPtr = buffer;
 			return len;
 
-		case 1:
+		case VENDOR_RQ_WRITE_BUFFER:
 			Serial.println(rq->wValue.bytes[0]);
 			return 0;
 	}
