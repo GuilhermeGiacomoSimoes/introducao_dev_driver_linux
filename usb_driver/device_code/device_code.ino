@@ -4,38 +4,76 @@
 const int VENDOR_RQ_READ_BUFFER = 0;
 const int VENDOR_RQ_WRITE_BUFFER = 1;
 
-const int negative = 7;
-const int positive = 6;
-unsigned int stateSended = 0; 
-
 static uchar buffer[64];
+static uchar currentPosition, bytesRemaining;
 
+void printBuffer() 
+{
+	for(int i = 0 ; i < 64; i ++) 
+		Serial.print(buffer[i]);
+
+	Serial.println();
+}
+
+/*
+Enquanto o host envia ou recebe mensagens de controle do enpoint 0,
+no qual e enderecado o "fornecedor" ou "classe", a funcao usbFunctionSetup()
+e chamada no seu codigo. Ele somente recebe um unico parametro: um ponteiro de 
+8 bits para os dados de configuracoes. 
+*/
 usbMsgLen_t usbFunctionSetup(uchar data[8]) 
 {
 	usbRequest_t *rq = (void *) data;
 	switch(rq->bRequest){
 		case VENDOR_RQ_WRITE_BUFFER:
-			usbMsgLen_t len = 64;
+			currentPosition = 0;
+			bytesRemaining = rq->wLength.word;
+			if(bytesRemaining > sizeof(buffer))
+				bytesRemaining = sizeof(buffer);
 
-			if(len > rq->wLength.word) 
-				len = rq->wLength.word;
-
-			usbMsgPtr = buffer;
-			return len;
+			return USB_NO_MSG;
 
 		case VENDOR_RQ_READ_BUFFER:
-			Serial.println(rq->wValue.bytes[0]);
-			return 0;
+			currentPosition = 0;
+			bytesRemaining = rq->wLength.word;
+			return USB_NO_MSG;
 	}
 
 	return 0;
 }
 
+uchar usbFunctionRead(uchar *data, uchar len)
+{
+	uchar i;
+	if(len > bytesRemaining) 
+		len = bytesRemaining;
+
+	bytesRemaining -= len;
+
+	//for(i = 0; i < len; i++)
+	//	data[i] = getData(currentPosition);
+
+	return len;
+}
+
+uchar usbFunctionWrite(uchar *data, uchar len) 
+{
+	uchar i;
+	if(len > bytesRemaining)
+		len = bytesRemaining;
+	
+	bytesRemaining -= len;
+
+	for(i = 0; i < len; i++) 
+		buffer[currentPosition++] = data[i];
+
+	printBuffer();
+
+	return bytesRemaining == 0;
+}
+
 void setup() 
 {
-  	pinMode(negative, INPUT);
-  	pinMode(positive, INPUT);
-
 	/*
 	Isso impõe a (re)enumeração do dispositivo. 
 	Em teoria, você não precisa disso, mas evita 
@@ -57,15 +95,4 @@ void loop()
 	no driver
 	*/
 	usbPoll();
-
-  	const int stateReceived = digitalRead(negative);
-
-  	Serial.print("\n");
-  	Serial.print("positive: ");
-  	Serial.print(stateSended);
-  	Serial.print("negative: ");
-  	Serial.print(stateReceived);
-  	Serial.print("\n");
-
-  	stateSended -= 1;
 }
