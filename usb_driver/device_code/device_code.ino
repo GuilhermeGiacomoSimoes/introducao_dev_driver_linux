@@ -1,24 +1,68 @@
 #include "conf_usb.h"
+#include <VUSB.h>
 
-const int received = 7;
-const int sended = 6;
+const int negative = 7;
+const int positive = 6;
 unsigned int stateSended = 0; 
 
-void setup() {
-  Serial.begin(9600);
-  pinMode(received, INPUT);
-  pinMode(sended, OUTPUT);
+static uchar buffer[64];
+
+usbMsgLen_t usbFunctionSetup(uchar data[8]) 
+{
+	usbRequest_t *rq = (void *) data;
+	switch(rq->bRequest){
+		case VENDOR_RQ_READ_BUFFER:
+			usbMsgLen_t len = 64;
+
+			if(len > eq->wLength.word) 
+				len = rq->wLength.word;
+
+			usbMsgPtr = buffer;
+			return len;
+
+		case 1:
+			Serial.println(rq->wValue.bytes[0]);
+			return 0;
+	}
+
+	return 0;
 }
 
-void loop() {
-  const int stateReceived = digitalRead(received);
+void setup() 
+{
+  	pinMode(negative, INPUT);
+  	pinMode(positive, INPUT);
 
-  Serial.print("\n");
-  Serial.print("sended: ");
-  Serial.print(stateSended);
-  Serial.print("received: ");
-  Serial.print(stateReceived);
-  Serial.print("\n");
+	/*
+	Isso impõe a (re)enumeração do dispositivo. 
+	Em teoria, você não precisa disso, mas evita 
+	inconsistências entre o host e o dispositivo 
+	após redefinições de hardware
+	*/
+  	usbDeviceDisconnect();
+  	delay(100);
+  	usbDeviceConnect();
 
-  stateSended -= 1;
+	usbInit();
+}
+
+void loop() 
+{
+	/*
+	Em algum lugar durante o loop principal usbPoll() 
+	deve ser chamado para executar tarefas administrativas 
+	no driver
+	*/
+	usbPoll();
+
+  	const int stateReceived = digitalRead(negative);
+
+  	Serial.print("\n");
+  	Serial.print("positive: ");
+  	Serial.print(stateSended);
+  	Serial.print("negative: ");
+  	Serial.print(stateReceived);
+  	Serial.print("\n");
+
+  	stateSended -= 1;
 }
