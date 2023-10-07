@@ -14,7 +14,7 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
 {
 	usbRequest_t *rq = (void *) data;
 	switch(rq->bRequest){
-		case VENDOR_RQ_READ_BUFFER:
+		case VENDOR_RQ_WRITE_BUFFER:
 			usbMsgLen_t len = 64;
 
 			if(len > rq->wLength.word) 
@@ -23,7 +23,7 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
 			usbMsgPtr = buffer;
 			return len;
 
-		case VENDOR_RQ_WRITE_BUFFER:
+		case VENDOR_RQ_READ_BUFFER:
 			Serial.println(rq->wValue.bytes[0]);
 			return 0;
 	}
