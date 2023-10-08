@@ -21,22 +21,18 @@ no qual e enderecado o "fornecedor" ou "classe", a funcao usbFunctionSetup()
 e chamada no seu codigo. Ele somente recebe um unico parametro: um ponteiro de 
 8 bits para os dados de configuracoes. 
 */
-usbMsgLen_t usbFunctionSetup(uchar data[8]) 
+usbMsgLen_t usbFunctionSetup(uchar setupData[8]) 
 {
-	usbRequest_t *rq = (void *) data;
+	usbRequest_t *rq = (void *) setupData;
 	switch(rq->bRequest){
-		case VENDOR_RQ_WRITE_BUFFER:
-			currentPosition = 0;
-			bytesRemaining = rq->wLength.word;
-			if(bytesRemaining > sizeof(buffer))
-				bytesRemaining = sizeof(buffer);
-
-			return USB_NO_MSG;
-
 		case VENDOR_RQ_READ_BUFFER:
-			currentPosition = 0;
-			bytesRemaining = rq->wLength.word;
-			return USB_NO_MSG;
+			usbMsgLen_t len = (len > rq->wLength.word) 
+				? rq->wLength.word
+				: 64;
+			
+			usbMsgPtr = buffer;
+			return len;
+
 	}
 
 	return 0;
@@ -58,13 +54,12 @@ uchar usbFunctionRead(uchar *data, uchar len)
 
 uchar usbFunctionWrite(uchar *data, uchar len) 
 {
-	uchar i;
 	if(len > bytesRemaining)
 		len = bytesRemaining;
 	
 	bytesRemaining -= len;
 
-	for(i = 0; i < len; i++) 
+	for(int i = 0; i < len; i++) 
 		buffer[currentPosition++] = data[i];
 
 	printBuffer();
