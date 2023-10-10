@@ -1,4 +1,3 @@
-#include "usbconfig.h"
 #include <VUSB.h>
 
 const int VENDOR_RQ_READ_BUFFER = 0;
@@ -6,6 +5,7 @@ const int VENDOR_RQ_WRITE_BUFFER = 1;
 
 static uchar buffer[64];
 static uchar currentPosition, bytesRemaining;
+static uint8_t angle;
 
 void printBuffer() 
 {
@@ -21,19 +21,33 @@ no qual e enderecado o "fornecedor" ou "classe", a funcao usbFunctionSetup()
 e chamada no seu codigo. Ele somente recebe um unico parametro: um ponteiro de 
 8 bits para os dados de configuracoes. 
 */
-usbMsgLen_t usbFunctionSetup(uchar setupData[8]) 
+usbMsgLen_t usbFunctionSetup(uchar data[8]) 
 {
-	usbRequest_t *rq = (void *) setupData;
-	switch(rq->bRequest){
-		case VENDOR_RQ_READ_BUFFER:
-			usbMsgLen_t len = (len > rq->wLength.word) 
-				? rq->wLength.word
-				: 64;
-			
-			usbMsgPtr = buffer;
-			return len;
+	static uchar replyBuffer[8];
+	uchar replyLength;
 
-	}
+	replyBuffer[0] = 0;
+    switch (data[1]) {
+    	case 0:            
+    	    replyBuffer[0] = data[2];
+    	    replyBuffer[1] = data[3];
+    	    replyLength = 2;
+    	    break;
+    	case 1:             
+    	    replyBuffer[0] = angle;
+    	    replyLength = 1;
+    	    break;
+    	case 2:            
+    	    angle = data[2];
+    	    replyLength = 0;
+    	    break;
+    	default:                
+    	    replyBuffer[0] = 1;
+    	    replyLength = 1;
+    	    break;
+    }
+    usbMsgPtr = replyBuffer;
+    return replyLength;
 
 	return 0;
 }
